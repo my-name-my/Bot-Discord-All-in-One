@@ -20,8 +20,20 @@ Quản lý server: ban / kick / timeout / warn / purge / lock / slowmode / nick 
 | `/unlock [channel]` | `!unlock [#kênh]` | mod | ManageChannels | Mở khóa kênh |
 | `/slowmode [seconds] [channel]` | `!slowmode <giây>` | mod | ManageChannels | Slowmode (0 = tắt) |
 | `/nick <user> [nickname\|reset]` | `!nick <user> [nick]` | mod | ManageNicknames | Đổi nickname |
-| `/role add <user> <role>` | `!role add <user> <role>` | admin | ManageRoles | Gán role |
-| `/role remove <user> <role>` | `!role remove <user> <role>` | admin | ManageRoles | Gỡ role |
+| `/role add <user> <role>` | `!role add <user> <role>` | admin | ManageRoles | Gán role (check hierarchy 2 chiều) |
+| `/role remove <user> <role>` | `!role remove <user> <role>` | admin | ManageRoles | Gỡ role (báo info nếu member chưa có role) |
+| `/role create <name>` | `!role create <name>` | admin | ManageRoles | Tạo role (validate màu hex, tên bắt buộc) |
+| `/role delete <role>` | `!role delete <role>` | admin | ManageRoles | Xóa role (chặn @everyone + role managed) |
+
+> Log create/delete do event `roleCreate`/`roleDelete` đảm nhiệm (kèm audit log) để tránh log trùng — xem `src/events/README.md`.
+
+## Quy ước đã chốt trong module
+
+- **Escalation ladder dùng chung** (`config.moderation.warnAutoPunish`): cả `/warn` thủ công và AutoMod đều gọi `moderationService.applyWarnEscalation()` — trước đây chỉ AutoMod leo thang nên warn tay không bao giờ escalate.
+- **`/warnings` giới hạn 25 field** (Discord reject embed > 25 field): hiển thị 25 case mới nhất + footer báo tổng số.
+- **`/purge` báo tin nhắn bị bỏ qua**: Discord không bulk-delete tin > 14 ngày tuổi — trả về `{ deleted, skipped }` và template `purgeSkipped` thay vì im lặng xóa thiếu.
+- **Prefix resolve user không cache**: `message.mentions.users` luôn có user được mention dù member chưa cache → `!ban @user` vẫn chạy, `ban()` fallback sang `guild.members.ban(userId)` được.
+- **`/ban` chấp nhận user đã rời server**: `getMember` thất bại → thử `getUser` + `guild.members.fetch()` → cuối cùng ban bằng user object thuần (không check hierarchy vì không còn role).
 
 ## Cách hoạt động
 

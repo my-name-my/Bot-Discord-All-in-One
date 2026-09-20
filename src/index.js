@@ -57,10 +57,8 @@ async function main() {
   const welcomeService = require('./services/welcomeService');
   const ticketService = require('./services/ticketService');
   const giveawayService = require('./services/giveawayService');
-  const pollService = require('./services/pollService');
-  const reminderService = require('./services/reminderService');
   const roleMenuService = require('./services/roleMenuService');
-  const notificationService = require('./services/notificationService');
+  const tempRoleService = require('./services/tempRoleService');
 
   // Route component (module tính năng tự đăng ký)
   require('./interactions/registerAll');
@@ -87,10 +85,8 @@ async function main() {
       welcomeService,
       ticketService,
       giveawayService,
-      pollService,
-      reminderService,
       roleMenuService,
-      notificationService,
+      tempRoleService,
     },
     defaultPrefix: config.defaultPrefix,
   };
@@ -101,11 +97,10 @@ async function main() {
 
   // Tự khôi phục timer của service cần client đang hoạt động
   giveawayService.setClient(client);
-  pollService.setClient(client);
-  reminderService.setClient(client);
-  notificationService.setClient(client);
   ticketService.setClient(client);
   loggingService.setClient(client);
+  roleMenuService.setClient(client);
+  tempRoleService.setClient(client);
 
   // Đăng nhập
   if (!config.token) {

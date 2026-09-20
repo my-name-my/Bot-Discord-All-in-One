@@ -7,7 +7,7 @@
 
 ## Models (`src/models/`)
 
-Schema / shape chuẩn của document: guild config, warn case, ticket, giveaway, poll, reminder, economy account, level row. Service nào persist shape nào thì import model đó để validate.
+Schema / shape chuẩn của document: guild config, warn case, ticket, giveaway, economy account, level row. Service nào persist shape nào thì import model đó để validate.
 
 ## Utils (`src/utils/`)
 

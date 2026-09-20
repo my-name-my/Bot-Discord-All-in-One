@@ -21,9 +21,6 @@ Collections used by the bot:
 - `economy` — wallet/bank/inventory per guild+user
 - `tickets` — ticket records
 - `giveaways` — giveaway state
-- `polls` — poll state
-- `reminders` — persisted reminders (survive restarts)
-- `notifications` — external feed configurations
 - `rolemenus` — role menu (select menu) definitions
 
 ## Files

@@ -6,12 +6,14 @@
  *   { enabled, panelChannelId, panelMessageId, logsChannelId,
  *     types: [{ id, label, emoji, categoryId, staffRoleIds }] }
  * Collection `tickets` doc:
+
  *   { id:"<guildId>:<n>", guildId, channelId, typeId, typeLabel, userId,
  *     status:'open'|'closed', claimedBy, number, createdAt, closedAt }
  */
 const { getDatabase } = require('../database');
 const guildConfigService = require('./guildConfigService');
 const loggingService = require('./loggingService');
+const i18n = require('./i18nService');
 const { COLORS, LIMITS } = require('../config/constants');
 const { EmbedBuilder, ActionRowBuilder, StringSelectMenuBuilder, StringSelectMenuOptionBuilder, PermissionFlagsBits } = require('discord.js');
 const logger = require('../utils/logger');
@@ -39,15 +41,21 @@ async function createPanel(guildId) {
   const guild = client.guilds.cache.get(guildId);
   if (!guild) return null;
 
+  // Không có types → select menu 0 option bị Discord API từ chối.
+  if (!Array.isArray(panel.types) || panel.types.length === 0) {
+    return { error: 'noTypes' };
+  }
+
   const channel = panel.panelChannelId
     ? guild.channels.cache.get(panel.panelChannelId)
     : guild.systemChannel;
   if (!channel || !channel.isTextBased()) return null;
 
   const select = new StringSelectMenuBuilder()
-    .setCustomId('ticket:select').setPlaceholder('Choose a ticket type…')
+    .setCustomId('ticket:select')
+    .setPlaceholder(i18n.translate(config.language, 'ticket.panelSelect'))
     .setMinValues(1).setMaxValues(1);
-  for (const type of panel.types || []) {
+  for (const type of panel.types) {
     select.addOptions(
       new StringSelectMenuOptionBuilder().setLabel(String(type.label).slice(0, 100))
         .setValue(type.id).setEmoji(type.emoji || '🎫'),
@@ -55,16 +63,21 @@ async function createPanel(guildId) {
   }
   const row = new ActionRowBuilder().addComponents(select);
   const embed = new EmbedBuilder().setColor(COLORS.ticket)
-    .setTitle(panel.panelTitle || '🎫 Create Ticket')
-    .setDescription(panel.panelDescription || 'Select a ticket type below to open a private channel with staff.')
+    .setTitle(panel.panelTitle || i18n.translate(config.language, 'ticket.panelTitle'))
+    .setDescription(panel.panelDescription || '')
     .setTimestamp();
 
   let msg;
-  if (panel.panelMessageId) {
-    try { const old = await channel.messages.fetch(panel.panelMessageId).catch(() => null); if (old) await old.edit({ embeds: [embed], components: [row] }); else msg = await channel.send({ embeds: [embed], components: [row] }); }
-    catch { msg = await channel.send({ embeds: [embed], components: [row] }); }
-  } else {
-    msg = await channel.send({ embeds: [embed], components: [row] });
+  try {
+    if (panel.panelMessageId) {
+      const old = await channel.messages.fetch(panel.panelMessageId).catch(() => null);
+      msg = old ? await old.edit({ embeds: [embed], components: [row] }) : await channel.send({ embeds: [embed], components: [row] });
+    } else {
+      msg = await channel.send({ embeds: [embed], components: [row] });
+    }
+  } catch (error) {
+    logger.warn('tickets', `createPanel failed in ${guildId}: ${error.message}`);
+    return null;
   }
   if (msg) await guildConfigService.update(guildId, { 'tickets.panelMessageId': msg.id });
   return channel;
@@ -101,23 +114,25 @@ async function openTicket(guildId, userId, typeId) {
   const doc = { id: key(guildId, number), guildId, channelId: channel.id, typeId, typeLabel: type.label, userId, status: 'open', claimedBy: null, number, createdAt: Date.now(), closedAt: null };
   await collection().set(doc.id, doc);
 
+  // i18n: render theo ngôn ngữ của guild, không hard-code tiếng Anh.
+  const t = (k, p) => i18n.translate(config.language, k, p);
   const embed = new EmbedBuilder().setColor(COLORS.ticket)
-    .setTitle(`🎫 ${type.label} Ticket — #${number}`)
-    .setDescription(`Hi <@${userId}>, a staff member will be with you shortly.\nPlease describe your issue here.`)
-    .addFields({ name: 'Type', value: type.label, inline: true }, { name: 'Owner', value: `<@${userId}>`, inline: true })
+    .setTitle(t('ticket.ticketTitle', { type: type.label, user: `<@${userId}>` }))
+    .setDescription(t('ticket.ticketDescription', { user: `<@${userId}>` }))
+    .addFields({ name: t('common.role'), value: type.label, inline: true }, { name: t('common.user'), value: `<@${userId}>`, inline: true })
     .setFooter({ text: `Ticket #${number}` }).setTimestamp();
   const row = new ActionRowBuilder().addComponents(
-    { type: 2, style: 1, label: 'Claim', customId: 'ticket:claim', emoji: '✋' },
-    { type: 2, style: 2, label: 'Close', customId: 'ticket:close', emoji: '🔒' },
-    { type: 2, style: 2, label: 'Delete', customId: 'ticket:delete', emoji: '🗑️' },
-    { type: 2, style: 0, label: 'Add', customId: 'ticket:add', emoji: '➕' },
-    { type: 2, style: 0, label: 'Remove', customId: 'ticket:remove', emoji: '➖' },
+    { type: 2, style: 1, label: t('ticket.claimBtn'), customId: 'ticket:claim', emoji: '✋' },
+    { type: 2, style: 2, label: t('ticket.close'), customId: 'ticket:close', emoji: '🔒' },
+    { type: 2, style: 2, label: t('ticket.delete'), customId: 'ticket:delete', emoji: '🗑️' },
+    { type: 2, style: 0, label: t('ticket.addBtn'), customId: 'ticket:add', emoji: '➕' },
+    { type: 2, style: 0, label: t('ticket.removeBtn'), customId: 'ticket:remove', emoji: '➖' },
   );
   await channel.send({ content: `<@${userId}>`, embeds: [embed], components: [row] }).catch(() => {});
 
   await loggingService.sendLog(guildId, 'moderation', {
-    title: `🎫 Ticket #${number} opened`,
-    description: `**Type:** ${type.label}\n**User:** <@${userId}> (${userId})\n**Channel:** ${channel}`,
+    title: t('ticket.logTitle', { number }),
+    description: t('ticket.logCreated', { user: `${userId}`, type: type.label, channel: `<#${channel.id}>` }),
     color: COLORS.ticket,
   });
   return doc;
@@ -130,14 +145,36 @@ async function getTicketByChannel(guildId, channelId) {
 
 function getById(guildId, number) { return collection().get(key(guildId, number)); }
 
+/** Đổi tên + khoá/mở kênh ticket (dùng chung cho slash/prefix/button). */
+async function editChannel(guildId, channelId, fn) {
+  const guild = client && client.guilds.cache.get(guildId);
+  const channel = guild && guild.channels.cache.get(channelId);
+  if (channel) await channel.edit(fn(channel)).catch(() => {});
+}
+
 async function closeTicket(guildId, channelId, staffId) {
   const found = await getTicketByChannel(guildId, channelId);
   const doc = found[0];
   if (!doc || doc.status !== 'open') return null;
-  doc.claimedBy = doc.claimedBy || staffId;
   doc.status = 'closed';
   doc.closedAt = Date.now();
   await collection().set(doc.id, doc);
+
+  // Rename + khoá kênh: thành viên mất SendMessages, staff vẫn xem được.
+  await editChannel(guildId, channelId, () => ({ name: `closed-${doc.number}-ticket` }));
+  const guild = client && client.guilds.cache.get(guildId);
+  const channel = guild && guild.channels.cache.get(channelId);
+  if (channel) {
+    const ow = channel.permissionOverwrites.cache.get(doc.userId);
+    if (ow) await ow.edit({ SendMessages: false }).catch(() => {});
+  }
+
+  await loggingService.sendLog(guildId, 'moderation', {
+    titleKey: 'ticket.logTitle',
+    titleParams: { number: doc.number },
+    description: i18n.translate((await guildConfigService.get(guildId)).language, 'ticket.logClosed', { staff: staffId, reason: '—' }),
+    color: COLORS.warning,
+  });
   return doc;
 }
 
@@ -148,6 +185,13 @@ async function reopenTicket(guildId, channelId) {
   doc.status = 'open';
   doc.closedAt = null;
   await collection().set(doc.id, doc);
+  await editChannel(guildId, channelId, () => ({ name: `ticket-${doc.number}` }));
+  const guild = client && client.guilds.cache.get(guildId);
+  const channel = guild && guild.channels.cache.get(channelId);
+  if (channel) {
+    const ow = channel.permissionOverwrites.cache.get(doc.userId);
+    if (ow) await ow.edit({ SendMessages: true }).catch(() => {});
+  }
   return doc;
 }
 
@@ -180,14 +224,26 @@ async function removeMember(guildId, channelId, targetId) {
   return true;
 }
 
-/** Capture up to transcriptMaxMessages messages; save to logs channel if set. */
+/** Capture messages for the transcript; saves to the logs channel if set.
+ *  discord.js fetch() chỉ trả tối đa 100 tin/call — lặp cho tới khi đủ
+ *  LIMITS.transcriptMaxMessages hoặc hết tin (trước đây limit 500 bị cắt
+ *  thầm lặng về 100 nên transcript luôn cụt). */
 async function makeTranscript(guildId, channelId) {
   if (!client) return null;
   const channel = client.guilds.cache.get(guildId)?.channels.cache.get(channelId);
   if (!channel) return null;
   try {
-    const fetched = await channel.messages.fetch({ limit: LIMITS.transcriptMaxMessages || 500 });
-    const lines = fetched.reverse().map((m) =>
+    const max = LIMITS.transcriptMaxMessages || 500;
+    const all = [];
+    let before = null;
+    while (all.length < max) {
+      const batch = await channel.messages.fetch({ limit: 100, before }).catch(() => null);
+      if (!batch || batch.size === 0) break;
+      all.push(...batch.values());
+      before = batch.last().id;
+      if (batch.size < 100) break;
+    }
+    const lines = all.slice(0, max).sort((a, b) => a.createdTimestamp - b.createdTimestamp).map((m) =>
       `[${new Date(m.createdTimestamp).toISOString()}] ${m.author?.tag || 'unknown'}: ${m.cleanContent}`,
     ).filter(Boolean);
     const config = await guildConfigService.get(guildId);

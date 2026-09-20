@@ -6,7 +6,7 @@ const guildConfigService = require('../../services/guildConfigService');
 const subcommands = [
   { name: 'rank', description: 'View your or a user level/rank', options: [{ name: 'user', type: 'user', description: 'User to check', required: false }] },
   { name: 'leaderboard', description: 'Top users by XP in this server' },
-    { name: 'level', description: 'Info about a specific level', options: [{ name: 'level', type: 'int', description: 'Level number', required: false }] },
+  { name: 'level', description: 'Info about a specific level', options: [{ name: 'level', type: 'int', description: 'Level number', required: false }] },
   { name: 'addxp', description: 'Grant XP to a member (ManageGuild)', options: [{ name: 'user', type: 'member', description: 'Target member', required: true }, { name: 'amount', type: 'int', description: 'Amount of XP', required: true }] },
 ];
 
@@ -45,9 +45,9 @@ async function cmdRank(ctx) {
   const embed = new EmbedBuilder().setColor(COLORS.primary)
     .setTitle(ctx.t('levels.rankTitle', { user: user.tag || user.username }))
     .addFields(
-      { name: 'Level', value: String(level), inline: true },
-      { name: 'XP', value: `${xp.toLocaleString()} / ${nextXp.toLocaleString()}`, inline: true },
-      { name: 'Progress', value: `\`${bar}\``, inline: false },
+      { name: ctx.t('levels.level'), value: String(level), inline: true },
+      { name: ctx.t('levels.xp'), value: `${xp.toLocaleString()} / ${nextXp.toLocaleString()}`, inline: true },
+      { name: ctx.t('levels.progress', { current: (xp - levelService.xpForLevel(level)).toLocaleString(), next: (nextXp - levelService.xpForLevel(level)).toLocaleString() }), value: `\`${bar}\``, inline: false },
     );
   if (member) {
     embed.setThumbnail(member.displayAvatarURL({ size: 128 }));
@@ -64,7 +64,7 @@ async function cmdLeaderboard(ctx) {
   for (const row of rows) {
     pos += 1;
     const user = ctx.client.users.cache.get(row.userId) || await ctx.client.users.fetch(row.userId).catch(() => null);
-    desc.push(`**${pos}.** ${user ? (user.tag || user.username) : row.userId} — Level ${row.level}, ${row.xp} XP`);
+    desc.push(`**${pos}.** ${user ? (user.tag || user.username) : row.userId} — ${ctx.t('levels.level')} ${row.level}, ${row.xp.toLocaleString()} ${ctx.t('levels.xp')}`);
   }
   embed.setDescription(desc.join('\n'));
   return ctx.reply({ embeds: [embed] }, { ephemeral: true });
@@ -78,8 +78,8 @@ async function cmdLevel(ctx) {
   const embed = new EmbedBuilder().setColor(COLORS.primary)
     .setTitle(ctx.t('levels.levelInfo', { level }))
     .addFields(
-      { name: 'XP required', value: `${xp.toLocaleString()} XP` },
-      { name: 'Next level at', value: `${nextXp.toLocaleString()} XP` },
+      { name: ctx.t('levels.xp'), value: `${xp.toLocaleString()} ${ctx.t('levels.xp')}` },
+      { name: `${ctx.t('levels.level')} ${level + 1}`, value: `${nextXp.toLocaleString()} ${ctx.t('levels.xp')}` },
     );
   return ctx.reply({ embeds: [embed] }, { ephemeral: true });
 }
@@ -89,7 +89,9 @@ async function cmdAddXp(ctx) {
   const target = ctx.getMember('user', ctx.member);
   if (!target) return ctx.sendError('common.memberNotFound', {}, {}, { ephemeral: true });
   const amount = ctx.getInt('amount');
-  if (!amount || amount < 0) return ctx.sendError('common.invalidInput', { reason: 'amount must be a positive integer' }, {}, { ephemeral: true });
-  await levelService.addXp(ctx.guildId, target.user.id, amount);
-  return ctx.sendSuccess('levels.addXp', { user: target.user.tag, amount: amount.toString() }, {}, { ephemeral: true });
+  if (!amount || amount < 0) return ctx.sendError('levels.invalidAmount', {}, {}, { ephemeral: true });
+  // grantXp (không phải addXp) → role reward + announce level-up vẫn chạy,
+  // giống hệt đường XP tự nhiên (spec §8).
+  await levelService.grantXp(ctx.guild, target, amount);
+  return ctx.sendSuccess('levels.xpAdded', { user: target.user.tag, amount: amount.toLocaleString() }, {}, { ephemeral: true });
 }

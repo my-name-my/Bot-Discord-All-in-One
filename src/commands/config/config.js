@@ -4,7 +4,7 @@ const config = require('../../config/config');
 const { EmbedBuilder } = require('discord.js');
 const { COLORS } = require('../../config/constants');
 
-const MODULE_KEYS = ['automod', 'logging', 'welcome', 'economy', 'levels', 'tickets', 'giveaways', 'games', 'notifications'];
+const MODULE_KEYS = ['automod', 'logging', 'welcome', 'economy', 'levels', 'tickets', 'giveaways'];
 
 module.exports = {
   name: 'config',

@@ -1,5 +1,12 @@
 const roleMenuService = require('../../services/roleMenuService');
 
+const NUMBER_EMOJIS = ['1️⃣', '2️⃣', '3️⃣', '4️⃣', '5️⃣', '6️⃣', '7️⃣', '8️⃣', '9️⃣', '🔟',
+  '🇦', '🇧', '🇨', '🇩', '🇪', '🇫', '🇬', '🇭', '🇮', '🇯'];
+
+function numberEmoji(index) {
+  return NUMBER_EMOJIS[index] || null;
+}
+
 function parseRoles(ctx, raw) {
   const guild = ctx.guild;
   const ids = String(raw || '').split(',').map((s) => s.trim()).filter(Boolean);
@@ -22,7 +29,7 @@ module.exports = {
   guildOnly: true,
   slash: true,
   subcommands: [
-    { name: 'create', description: 'Create a role menu', options: [{ name: 'type', type: 'string', description: 'select | buttons', required: true, choices: [{ name: 'select', value: 'select' }, { name: 'buttons', value: 'buttons' }] }, { name: 'channel', type: 'channel', description: 'Channel to post in', required: true }, { name: 'title', type: 'string', description: 'Menu title', required: true }, { name: 'roles', type: 'string', description: 'Comma-separated roles', required: true }] },
+    { name: 'create', description: 'Create a role menu', options: [{ name: 'type', type: 'string', description: 'select | buttons | reaction', required: true, choices: [{ name: 'select', value: 'select' }, { name: 'buttons', value: 'buttons' }, { name: 'reaction', value: 'reaction' }] }, { name: 'channel', type: 'channel', description: 'Channel to post in', required: true }, { name: 'title', type: 'string', description: 'Menu title', required: true }, { name: 'roles', type: 'string', description: 'Comma-separated roles', required: true }] },
     { name: 'delete', description: 'Delete a role menu message', options: [{ name: 'message', type: 'string', description: 'Message id of the menu', required: true }] },
     { name: 'list', description: 'List role menus in this server' },
   ],
@@ -43,9 +50,12 @@ async function create(ctx) {
   if (!channel?.isTextBased()) return ctx.sendError('common.channel', {}, {}, { ephemeral: true });
   if (!options.length) return ctx.sendError('roles.noRolesFound', {}, {}, { ephemeral: true });
   if (type === 'buttons' && options.length > 25) return ctx.sendError('roles.menuTooMany', {}, {}, { ephemeral: true });
-  if (type === 'select' && options.length === 1) return ctx.sendError('roles.menuTooFew', {}, {}, { ephemeral: true });
+  if (type === 'reaction' && options.length > 20) return ctx.sendError('roles.menuTooMany', {}, {}, { ephemeral: true });
   if (type === 'select') {
     await roleMenuService.createSelect({ guild: ctx.guild, channel, title, placeholder: ctx.t('roles.menuPlaceholder'), options });
+  } else if (type === 'reaction') {
+    const reactionOptions = options.map((opt, i) => ({ ...opt, emoji: numberEmoji(i) || opt.emoji }));
+    await roleMenuService.createReactions({ guild: ctx.guild, channel, title, options: reactionOptions });
   } else {
     await roleMenuService.createButtons({ guild: ctx.guild, channel, title, options });
   }

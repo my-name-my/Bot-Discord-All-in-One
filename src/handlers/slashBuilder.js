@@ -6,7 +6,7 @@
  * Type mapping: string→3 int→4 bool→5 user→6 channel→7 role→8
  *               (9 = mentionable not needed; duration stays string)
  */
-const OPTION_TYPES = { string: 3, int: 4, bool: 5, user: 6, channel: 7, role: 8 };
+const OPTION_TYPES = { string: 3, int: 4, bool: 5, user: 6, member: 6, channel: 7, role: 8 };
 
 function optionToJSON(optDef) {
   const json = {

@@ -10,12 +10,16 @@ module.exports = {
   permissions: { tier: 'mod', bot: ['ManageChannels'] },
   guildOnly: true,
   slash: true,
-  options: [{ name: 'channel', type: 'channel', description: 'Channel to unlock (defaults to current)', required: false }],
+  options: [
+    { name: 'channel', type: 'channel', description: 'Channel to unlock (defaults to current)', required: false },
+    { name: 'reason', type: 'string', description: 'Reason for unlocking', required: false },
+  ],
   async run(ctx) {
     const channel = ctx.getChannel('channel', ctx.channel);
     if (!channel?.isTextBased()) return ctx.sendError('common.channel', {}, {}, { ephemeral: true });
-    const r = await moderationService.setLock(channel, false, ctx.guild);
+    const reasonText = ctx.getString('reason', ctx.t('common.noReason'));
+    const r = await moderationService.setLock(channel, false, ctx.guild, reasonText);
     if (!r.ok) return ctx.sendError(r.reason, {}, {}, { ephemeral: true });
-    return ctx.sendSuccess('moderation.unlocked', { channel: channel.name || channel.id });
+    return ctx.sendSuccess('moderation.unlocked', { channel: channel.name || channel.id, reason: reasonText });
   },
 };

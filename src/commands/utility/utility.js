@@ -2,16 +2,12 @@
  * Lệnh tiện ích — các subcommand meta/tiện ích. (spec §16)
  *
  * Subcommand: ping, uptime, botinfo, avatar, banner, userinfo,
- * serverinfo, membercount, roleinfo, channelinfo, emoji, invite,
- * poll, remind.
+ * serverinfo, membercount, roleinfo, channelinfo, emoji, invite.
  *
  * Cả đường slash lẫn prefix đều chạy qua cùng các hàm xử lý.
  */
 const { EmbedBuilder } = require('discord.js');
-const { COLORS, LIMITS } = require('../../config/constants');
-const { parseDuration, formatDuration } = require('../../utils/time');
-const pollService = require('../../services/pollService');
-const reminderService = require('../../services/reminderService');
+const { COLORS } = require('../../config/constants');
 
 const subcommands = [
   { name: 'ping', description: 'Check bot latency and database health' },
@@ -26,21 +22,19 @@ const subcommands = [
   { name: 'channelinfo', description: 'Show info about a channel', options: [{ name: 'channel', type: 'channel', description: 'Channel to inspect', required: false }] },
   { name: 'emoji', description: 'List custom emojis of this server' },
   { name: 'invite', description: 'Generate an invite link for this server', options: [{ name: 'max_age', type: 'int', description: 'Max age in seconds', required: false }, { name: 'max_uses', type: 'int', description: 'Max uses', required: false }] },
-  { name: 'poll', description: 'Create a poll', options: [{ name: 'question', type: 'string', description: 'Poll question', required: true }, { name: 'options', type: 'string', description: 'Semicolon separated options', required: true }, { name: 'duration', type: 'string', description: 'Duration e.g. 1h', required: false }, { name: 'anonymous', type: 'bool', description: 'Hide voters', required: false }, { name: 'multi', type: 'bool', description: 'Allow multiple votes', required: false }] },
-  { name: 'remind', description: 'Set a reminder', options: [{ name: 'duration', type: 'string', description: 'Duration e.g. 10m', required: true }, { name: 'text', type: 'string', description: 'Reminder text', required: true }] },
 ];
 
 const handlers = {
   ping: cmdPing, uptime: cmdUptime, botinfo: cmdBotinfo, avatar: cmdAvatar, banner: cmdBanner,
   userinfo: cmdUserinfo, serverinfo: cmdServerinfo, membercount: cmdMembercount, roleinfo: cmdRoleinfo,
-  channelinfo: cmdChannelinfo, emoji: cmdEmoji, invite: cmdInvite, poll: cmdPoll, remind: cmdRemind,
+  channelinfo: cmdChannelinfo, emoji: cmdEmoji, invite: cmdInvite
 };
 
 module.exports = {
   name: 'utility',
-  description: 'Utility commands (ping, info, avatar, poll, remind…)',
+  description: 'Utility commands (ping, info, avatar…)',
   category: 'utility', aliases: [],
-  usage: 'utility <ping|avatar|userinfo|serverinfo|poll|remind…>',
+  usage: 'utility <ping|avatar|userinfo|serverinfo…>',
   cooldown: { seconds: 0, scope: 'user' }, permissions: { tier: 'member' },
   guildOnly: true, slash: true,
   subcommands,
@@ -207,31 +201,4 @@ async function cmdInvite(ctx) {
   }
 }
 
-async function cmdPoll(ctx) {
-  const question = ctx.getString('question');
-  if (!question) return ctx.sendError('utility.pollNeedQuestion', {}, {}, { ephemeral: true });
-  let optionsStr = ctx.getString('options', '');
-  if (!optionsStr && ctx.message) {
-    optionsStr = ctx.message.content.split(' ').slice(2).join(' ').split(';').join(';');
-  }
-  const options = String(optionsStr).split(';').map((s) => s.trim()).filter((s) => s).slice(0, LIMITS.pollMaxOptions);
-  if (options.length < 2) return ctx.sendError('utility.pollNeedOptions', {}, {}, { ephemeral: true });
-  const duration = ctx.getDuration('duration') || 24 * 60 * 60 * 1000;
-  const anonymous = ctx.getBool('anonymous');
-  const multi = ctx.getBool('multi');
-  if (!ctx.guild || !ctx.channel?.isTextBased()) return ctx.sendError('common.guildOnly', {}, {}, { ephemeral: true });
-  await pollService.create({ guild: ctx.guild, channel: ctx.channel, hostId: ctx.user.id, question, options, anonymous, multi, durationMs: duration });
-  return ctx.sendSuccess('utility.pollCreated', { channel: ctx.channel.toString() }, {}, { ephemeral: true });
-}
 
-async function cmdRemind(ctx) {
-  const durationStr = ctx.getString('duration');
-  const duration = parseDuration(durationStr);
-  if (!duration) return ctx.sendError('utility.remindInvalidDuration', {}, {}, { ephemeral: true });
-  if (duration > LIMITS.remindMaxMs) return ctx.sendError('utility.remindTooLong', {}, {}, { ephemeral: true });
-  const text = ctx.getString('text') || ctx.message?.content?.split(' ').slice(2).join(' ');
-  if (!text) return ctx.sendError('utility.remindNeedText', {}, {}, { ephemeral: true });
-  if (!ctx.guild || !ctx.channel) return ctx.sendError('common.guildOnly', {}, {}, { ephemeral: true });
-  await reminderService.schedule(ctx.guildId, ctx.channel.id, ctx.user.id, text, duration);
-    return ctx.sendSuccess('utility.remindSet', { duration: formatDuration(duration, ctx.t.bind(ctx)), text }, {}, { ephemeral: true });
-}

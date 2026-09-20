@@ -1,6 +1,6 @@
 # Discord Bot All-in-One
 
-Bot Discord đa chức năng: moderation, automod, logging, welcome, roles, tickets, levels, economy, giveaways, games, utility, polls, reminders, notifications. Chạy đồng thời **slash + prefix commands**, cấu hình riêng từng server, 2 ngôn ngữ (vi/en).
+Bot Discord đa chức năng: moderation, automod, logging, welcome, roles, tickets, levels, economy, giveaways, utility. Chạy đồng thời **slash + prefix commands**, cấu hình riêng từng server, 2 ngôn ngữ (vi/en).
 
 > Spec gốc: [`PROMT.md`](./PROMT.md). 31 slash commands, 16 categories, chế độ **guild-only** (không dùng global commands).
 
@@ -17,11 +17,9 @@ Bot Discord đa chức năng: moderation, automod, logging, welcome, roles, tick
 | Levels & XP | `/levels rank/leaderboard/level/addxp` | [`src/commands/levels/README.md`](./src/commands/levels/README.md) |
 | Economy | `/economy balance/daily/work/deposit/withdraw/pay/shop/inventory/admin` | [`src/commands/economy/README.md`](./src/commands/economy/README.md) |
 | Giveaways | `/giveaway create/end/reroll/list` | [`src/commands/giveaways/README.md`](./src/commands/giveaways/README.md) |
-| Games | `/games coinflip/dice/rps/guess/quiz/blackjack/slots` | [`src/commands/games/README.md`](./src/commands/games/README.md) |
-| Utility | `/utility ping/avatar/userinfo/serverinfo/poll/remind …` (14 sub) | [`src/commands/utility/README.md`](./src/commands/utility/README.md) |
-| Polls | `/poll create` (multi, ẩn danh, tự đóng) | [`src/commands/polls/README.md`](./src/commands/polls/README.md) |
-| Reminders | `/remind set/list/remove` | [`src/commands/reminders/README.md`](./src/commands/reminders/README.md) |
-| Notifications | `/notify add/list/remove` (YouTube/Twitch/RSS) | [`src/commands/notifications/README.md`](./src/commands/notifications/README.md) |
+| Utility | `/utility ping/avatar/userinfo/serverinfo …` (12 sub) | [`src/commands/utility/README.md`](./src/commands/utility/README.md) |
+| Config | `/config prefix/language/module/view/reset` | [`src/commands/config/README.md`](./src/commands/config/README.md) |
+| Context menu | Chuột phải user → `Profile` | [`src/commands/context/README.md`](./src/commands/context/README.md) |
 | Config | `/config prefix/language/module/view/reset` | [`src/commands/config/README.md`](./src/commands/config/README.md) |
 | Context menu | Chuột phải user → `Profile` | [`src/commands/context/README.md`](./src/commands/context/README.md) |
 

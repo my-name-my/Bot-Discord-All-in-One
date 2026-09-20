@@ -53,6 +53,10 @@ function resolveOptions(definition, args, message, subcommandDef) {
             || null;
           user = member ? member.user : message.client.users.cache.get(id) || null;
         }
+        // A mentioned user is always present in mentions.users even when the
+        // member is not cached, so `!ban @user` keeps working for members who
+        // joined before the bot came online (slash options resolve server-side).
+        if (!user && id && message.mentions.users.has(id)) user = message.mentions.users.get(id);
         if (user) {
           options[optDef.name] = user;
           if (member) members[optDef.name] = member;

@@ -19,9 +19,12 @@ module.exports = {
     const r = await moderationService.bulkDelete(ctx.channel, amount);
     if (!r.ok) return ctx.sendError(r.reason, {}, {}, { ephemeral: true });
     await moderationService.logAction(ctx.guildId, 'messages', {
-      title: '🧹 Messages purged', description: `${r.deleted} message(s) deleted in <#${ctx.channel.id}>`,
+      title: '🧹 Messages purged', description: `${r.deleted} message(s) deleted in <#${ctx.channel.id}>${r.skipped ? ` (${r.skipped} too old, skipped)` : ''}`,
       fields: [{ name: 'Moderator', value: ctx.user.tag, inline: true }], color: 0xfee75c,
     });
+    // Discord cannot bulk-delete messages older than 14 days: report the skipped
+    // ones instead of silently deleting fewer messages than requested.
+    if (r.skipped) return ctx.sendSuccess('moderation.purgeSkipped', { count: r.deleted, skipped: r.skipped });
     return ctx.sendSuccess('moderation.purgeSuccess', { count: r.deleted });
   },
 };

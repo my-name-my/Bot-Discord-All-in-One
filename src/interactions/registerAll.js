@@ -16,7 +16,6 @@ const componentHandler = require('../handlers/componentHandler');
 const modules = [
   require('./tickets'),
   require('./giveaways'),
-  require('./polls'),
   require('./roleMenus'),
 ];
 

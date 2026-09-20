@@ -1,6 +1,6 @@
 # Utility
 
-Lệnh tiện ích chung: info, avatar, poll nhanh, remind (§12 PROMT).
+Lệnh tiện ích chung: info, avatar… (§16 PROMT).
 
 ## Commands (`/utility <sub>`)
 
@@ -18,7 +18,3 @@ Lệnh tiện ích chung: info, avatar, poll nhanh, remind (§12 PROMT).
 | `channelinfo [channel]` | `!channelinfo [#k]` | Thông tin kênh |
 | `emoji` | `!emoji` | Liệt kê emoji |
 | `invite` | `!invite` | Link mời bot |
-| `poll <câu hỏi> <opt...> [duration]` | `!poll ...` | Poll nhanh (reaction vote) |
-| `remind <duration> <text>` | `!remind ...` | Nhắc việc (DM/kênh) |
-
-Poll nhiều lựa chọn / ẩn danh nâng cao nằm ở module `polls`. Reminder quản lý (list/remove) ở module `reminders`.

@@ -1,4 +1,5 @@
 const moderationService = require('../../services/moderationService');
+const guildConfigService = require('../../services/guildConfigService');
 const { EmbedBuilder } = require('discord.js');
 const { COLORS } = require('../../config/constants');
 
@@ -23,10 +24,30 @@ module.exports = {
     const reasonText = ctx.getString('reason', ctx.t('common.noReason'));
     const r = await moderationService.addWarning(ctx.guild, ctx.member, target, reasonText);
     if (!r.ok) return ctx.sendError(r.reason, {}, {}, { ephemeral: true });
+
+    // Optional DM — wording lives in locales (it used to be hard-coded English).
     if (ctx.getBool('notify', false)) {
-      const embed = new EmbedBuilder().setColor(COLORS.warning).setTitle('⚠️ You were warned').setDescription(`**Server:** ${ctx.guild.name}\n${ctx.t('common.reason')}: ${reasonText}\n${ctx.t('common.case', { number: r.number })}`);
+      const embed = new EmbedBuilder()
+        .setColor(COLORS.warning)
+        .setTitle(ctx.t('moderation.warnDmTitle'))
+        .setDescription(ctx.t('moderation.warnNotifyDm', { server: ctx.guild.name, reason: reasonText, case: r.number }));
       await target.send({ embeds: [embed] }).catch(() => {});
     }
-    return ctx.sendSuccess('moderation.warned', { user: target.user.tag, count: r.total }, { allowedMentions: { parse: [] } });
+
+    // Configurable severity ladder (config.moderation.warnAutoPunish). Only the
+    // AutoMod path used to honour it, so manual warnings never escalated even
+    // though the ladder is documented as shared with /warn.
+    const config = await guildConfigService.get(ctx.guildId);
+    const escalation = await moderationService.applyWarnEscalation(ctx.guild, target, r.total, config, {
+      reason: `Warned by ${ctx.user.tag}`,
+    });
+
+    const mentions = { allowedMentions: { parse: [] } };
+    if (escalation) {
+      return ctx.sendSuccess('moderation.warnEscalated', {
+        user: target.user.tag, count: r.total, action: escalation.action, reason: reasonText,
+      }, mentions);
+    }
+    return ctx.sendSuccess('moderation.warned', { user: target.user.tag, count: r.total, reason: reasonText }, mentions);
   },
 };

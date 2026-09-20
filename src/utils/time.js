@@ -1,6 +1,6 @@
 /**
  * Duration parsing / formatting used by timeouts, cooldowns, giveaways,
- * polls and reminders. Accepted input examples: 10s, 5m, 2h, 3d, 1w,
+ * durations. Accepted input examples: 10s, 5m, 2h, 3d, 1w,
  * "1h30m", a plain number of seconds ("90").
  */
 const UNITS_MS = {

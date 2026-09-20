@@ -2,15 +2,20 @@
  * LevelService — XP per guild+user (`levels` collection).
  * XP curve: level = floor(sqrt(xp / 100)); xp for next = (level+1)^2 * 100.
  * XP is granted with a per-user cooldown and never for spam/bots/no-xp
- * channels or roles. Level role rewards are applied automatically.
+ * channels or roles. Level role rewards are applied automatically and the
+ * level-up is announced (config.levels.announceChannelId or the message
+ * channel) using the guild language.
  */
+const { EmbedBuilder } = require('discord.js');
 const { getDatabase } = require('../database');
 const guildConfigService = require('./guildConfigService');
-const { clone } = require('../utils/objects');
-const { XP } = require('../config/constants');
+const i18n = require('./i18nService');
+const logger = require('../utils/logger');
+const { XP, COLORS } = require('../config/constants');
 
 const COLLECTION = 'levels';
 const recentMessages = new Map(); // `${guildId}:${userId}` → last xp timestamp
+const CLEANUP_THRESHOLD = 20_000;
 
 function collection() {
   return getDatabase().collection(COLLECTION);
@@ -81,23 +86,75 @@ async function handleMessage(message, client) {
   const { xp, level } = await setXp(guildId, userId, (before.xp || 0) + amount);
 
   if (level > beforeLevel) {
-    await applyRoleRewards(message.guild, message.member, level, config);
+    await applyLevelUpSideEffects(message.guild, message.member, message.channel, level, config);
     return { guildId, userId, level, xp };
   }
   return null;
 }
 
+/**
+ * Mọi hiệu ứng khi lên level (dùng chung cho cả XP từ tin nhắn lẫn admin
+ * /levels addxp — spec §8: level up + level role rewards):
+ *   1. Gán role reward đúng mốc level.
+ *   2. Thông báo level-up vào announceChannelId (hoặc kênh hiện tại) —
+ *      i18n theo ngôn ngữ guild, không hard-code chuỗi.
+ * Never throws — hỏng perm/kênh chỉ bị bỏ qua, XP vẫn được cộng.
+ */
+async function applyLevelUpSideEffects(guild, member, fallbackChannel, level, config) {
+  try {
+    const rewards = await applyRoleRewards(guild, member, level, config);
+    await announceLevelUp(guild, member, level, fallbackChannel, config, rewards);
+  } catch (error) {
+    logger.error('levels', `level-up side effects failed in ${guild ? guild.id : '?'}: ${error.message}`);
+  }
+}
+
 async function applyRoleRewards(guild, member, level, config) {
-  if (!member || !Array.isArray(config.levels.roleRewards)) return;
+  const granted = [];
+  if (!member || !Array.isArray(config.levels.roleRewards)) return granted;
   for (const reward of config.levels.roleRewards) {
     if (reward.level !== level) continue;
     const role = guild.roles.cache.get(reward.roleId);
     if (!role || !member.roles.cache.has(reward.roleId)) {
       try {
-        if (role) await member.roles.add(role, 'Level reward');
+        if (role) {
+          await member.roles.add(role, 'Level reward');
+          granted.push(role);
+        }
       } catch { /* hierarchy/permission — ignore */ }
     }
   }
+  return granted;
+}
+
+async function announceLevelUp(guild, member, level, fallbackChannel, config, rewards = []) {
+  const lang = config.language;
+  const channelId = config.levels.announceChannelId || (fallbackChannel ? fallbackChannel.id : null);
+  if (!channelId) return;
+  const channel = guild.channels.cache.get(channelId);
+  if (!channel || !channel.isTextBased()) return;
+  const perms = channel.permissionsFor(guild.members.me);
+  if (!perms || !perms.has('SendMessages')) return;
+
+  const user = member ? member.user : null;
+  const description = i18n.translate(lang, 'levels.levelUp', {
+    mention: user ? user.toString() : level,
+    level,
+  });
+  const embed = new EmbedBuilder()
+    .setColor(COLORS.success)
+    .setDescription(description)
+    .setTimestamp();
+  if (user) embed.setThumbnail(user.displayAvatarURL({ size: 128 }));
+  // Role reward: mỗi reward là 1 dòng roleRewardEarned đã render i18n
+  // (trước đây có biến lines tính rồi bỏ + format tự chế không qua i18n).
+  if (rewards.length) {
+    const rendered = rewards.slice(0, 5).map((role) =>
+      i18n.translate(lang, 'levels.roleRewardEarned', { role: role.toString(), level })
+    );
+    embed.setDescription(`${description}\n${rendered.join('\n')}`);
+  }
+  await channel.send({ embeds: [embed], allowedMentions: { parse: ['users'] } });
 }
 
 /** Top N users by XP for a guild. */
@@ -119,11 +176,39 @@ async function addXp(guildId, userId, amount) {
   return setXp(guildId, userId, (before.xp || 0) + amount);
 }
 
+/**
+ * Admin: cấp XP trực tiếp (VÀ vẫn áp dụng role reward + thông báo khi lên
+ * level — trước đây đường admin bỏ qua cả hai, khác đường XP tự nhiên).
+ * @param {Guild} guild
+ * @param {GuildMember|null} member member đã fetch của người nhận
+ * @param {number} amount
+ */
+async function grantXp(guild, member, amount) {
+  const guildId = guild.id;
+  const userId = member.user.id;
+  const config = await guildConfigService.get(guildId);
+  const beforeLevel = (await getRecord(guildId, userId)).level || levelForXp(0);
+  const { xp, level } = await addXp(guildId, userId, amount);
+  if (level > beforeLevel) {
+    // Không có fallbackChannel từ context — resolve system channel hoặc kênh
+    // text đầu tiên để level-up do admin cộng XP vẫn được thông báo.
+    let fallbackChannel = null;
+    if (!config.levels.announceChannelId) {
+      fallbackChannel = guild.systemChannel
+        || guild.channels.cache.find((c) => c.isTextBased() && c.permissionsFor(guild.members.me)?.has('SendMessages'))
+        || null;
+    }
+    await applyLevelUpSideEffects(guild, member, fallbackChannel, level, config);
+  }
+  return { xp, level };
+}
+
 module.exports = {
   handleMessage,
   getRecord,
   setXp,
   addXp,
+  grantXp,
   leaderboard,
   levelForXp,
   xpForLevel,

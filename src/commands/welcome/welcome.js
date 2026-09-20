@@ -27,7 +27,7 @@ module.exports = {
     { name: 'test', description: 'Send a test welcome in this channel' },
   ],
   async run(ctx) {
-    const sub = ctx.subcommand && ctx.subcommand.name;
+    const sub = (ctx.subcommand && ctx.subcommand.name) || ctx.getString('sub', null);
     if (sub === 'channel') return channel(ctx);
     if (sub === 'message') return message(ctx);
     if (sub === 'autorole') return autorole(ctx);
@@ -40,20 +40,32 @@ module.exports = {
 
 async function channel(ctx) {
   const ch = ctx.getChannel('channel', null);
+  if (ch && !ch.isTextBased()) {
+    return ctx.sendError('welcome.mustBeText', {}, {}, { ephemeral: true });
+  }
   await guildConfigService.update(ctx.guildId, { 'welcome.channelId': ch ? ch.id : null });
-  return ctx.sendSuccess(ch ? 'welcome.channelSet' : 'common.success', { channel: ch ? ch.id : '' });
+  if (ch) return ctx.sendSuccess('welcome.channelSet', { channel: `<#${ch.id}>` });
+  return ctx.sendSuccess('welcome.channelCleared');
 }
 
 async function message(ctx) {
   const text = ctx.getString('text');
+  if (!text || !text.trim()) return ctx.sendError('common.invalidInput', { reason: 'empty' }, {}, { ephemeral: true });
+  if (text.length > 2000) return ctx.sendError('welcome.messageTooLong', {}, {}, { ephemeral: true });
   await guildConfigService.update(ctx.guildId, { 'welcome.message': text });
-  return ctx.sendSuccess('common.success');
+  return ctx.sendSuccess('welcome.messageSet');
 }
 
 async function autorole(ctx) {
   const role = ctx.getRole('role', null);
-  await guildConfigService.update(ctx.guildId, { 'welcome.autoroleIds': role ? [role.id] : [] });
-  if (role) return ctx.sendSuccess('welcome.autoroleSet', { role: role.name });
+  if (role) {
+    if (typeof role.editable === 'boolean' && !role.editable) {
+      return ctx.sendError('welcome.roleTooHigh', {}, {}, { ephemeral: true });
+    }
+    await guildConfigService.update(ctx.guildId, { 'welcome.autoroleIds': [role.id] });
+    return ctx.sendSuccess('welcome.autoroleSet', { role: role.name });
+  }
+  await guildConfigService.update(ctx.guildId, { 'welcome.autoroleIds': [] });
   return ctx.sendSuccess('welcome.autoroleOff');
 }
 
@@ -71,7 +83,14 @@ async function toggle(ctx) {
 
 async function testMsg(ctx) {
   const placeholders = require('../../utils/placeholders');
+  const { EmbedBuilder } = require('discord.js');
+  const { COLORS } = require('../../config/constants');
   const gc = await guildConfigService.get(ctx.guildId);
-  const text = placeholders.applyPlaceholders(gc.welcome.message, { guild: ctx.guild, user: ctx.user });
-  return ctx.reply({ content: text || '(empty message)' }, { ephemeral: false });
+  const fakeUser = ctx.user;
+  const text = placeholders.applyPlaceholders(gc.welcome.message, { guild: ctx.guild, user: fakeUser });
+  const embed = new EmbedBuilder()
+    .setColor(COLORS.primary)
+    .setTitle(ctx.t('welcome.previewTitle'))
+    .setDescription(text || '(empty message)');
+  return ctx.reply({ embeds: [embed] }, { ephemeral: true });
 }

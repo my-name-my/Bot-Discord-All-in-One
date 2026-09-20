@@ -92,10 +92,11 @@ class CommandHandler {
           if (value.member) members[optDef.name] = value.member;
           break;
         case 'member':
-          if (value.member) {
-            members[optDef.name] = value.member;
-            options[optDef.name] = value.member.user || null;
-          }
+          // value.member is only present when the member is cached; fall back
+          // to value.user so plain-user options (e.g. ban of a departed user)
+          // still resolve.
+          members[optDef.name] = value.member || null;
+          options[optDef.name] = (value.member && value.member.user) || value.user || null;
           break;
         case 'channel':
           options[optDef.name] = value.channel || null;

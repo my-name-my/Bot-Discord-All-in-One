@@ -20,8 +20,6 @@ const guildDefaults = {
     levels: true,
     tickets: true,
     giveaways: true,
-    games: true,
-    notifications: true,
   },
 
   // Custom staff tiers: role ids per tier (checked by permissionService)
@@ -78,7 +76,7 @@ const guildDefaults = {
       badWords: { enabled: true, words: [], action: 'delete' },
       capsFilter: { enabled: false, minLength: 12, maxPercent: 70, action: 'delete' },
       emojiSpam: { enabled: true, maxEmojis: 10, action: 'delete' },
-      massJoin: { enabled: true, maxJoins: 6, windowSeconds: 60, action: 'lockdown' },
+      massJoin: { enabled: true, maxJoins: 6, windowSeconds: 60, action: 'lockdown', lockdownMinutes: 5 },
     },
   },
 

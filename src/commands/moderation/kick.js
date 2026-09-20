@@ -17,8 +17,9 @@ module.exports = {
   async run(ctx) {
     const target = ctx.getMember('user');
     if (!target) return ctx.sendError('common.memberNotFound', {}, {}, { ephemeral: true });
-    const r = await moderationService.kick(ctx.guild, ctx.member, target, ctx.getString('reason', ctx.t('common.noReason')));
+    const reasonText = ctx.getString('reason', ctx.t('common.noReason'));
+    const r = await moderationService.kick(ctx.guild, ctx.member, target, reasonText);
     if (!r.ok) return ctx.sendError(r.reason, {}, {}, { ephemeral: true });
-    return ctx.sendSuccess('moderation.kickSuccess', { user: target.user.tag });
+    return ctx.sendSuccess('moderation.kickSuccess', { user: target.user.tag, reason: reasonText });
   },
 };

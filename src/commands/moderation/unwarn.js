@@ -20,7 +20,7 @@ module.exports = {
     const caseNumber = ctx.getInt('case');
     if (!caseNumber) return ctx.sendError('moderation.unwarnBadNumber', { prefix: ctx.prefix }, {}, { ephemeral: true });
     const r = await moderationService.removeWarning(ctx.guild, ctx.member, target, caseNumber);
-    if (!r.ok) return ctx.sendError(r.reason, {}, {}, { ephemeral: true });
+    if (!r.ok) return ctx.sendError(r.reason, { number: caseNumber }, {}, { ephemeral: true });
     return ctx.sendSuccess('moderation.unwarned', { user: target.user.tag, number: caseNumber });
   },
 };

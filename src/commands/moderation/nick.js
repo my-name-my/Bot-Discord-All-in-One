@@ -21,11 +21,11 @@ module.exports = {
     const r = await moderationService.canModerate(ctx.member, target);
     if (!r.ok) return ctx.sendError(r.reason, {}, {}, { ephemeral: true });
     try {
-      await target.setNickname(nick === null ? null : String(nick).slice(0, 32), 'Nickname updated');
-      await moderationService.logAction(ctx.guildId, 'moderation', {
-        title: '📝 Nickname changed', description: `${target.user.tag} is now "${nick === null ? '(reset)' : nick}"`,
-        fields: [{ name: 'Moderator', value: ctx.user.tag, inline: true }], color: 0xfee75c,
-      });
+      // Deliberately no log call here: the `guildMemberUpdate` event is the
+      // single owner of nickname logging. It also catches changes made outside
+      // the bot and attributes them from the audit log. Writing a log here too
+      // would duplicate every /nick (see src/events/guildMemberUpdate.js).
+      await target.setNickname(nick === null ? null : String(nick).slice(0, 32), `Nickname updated by ${ctx.user.tag}`);
       return ctx.sendSuccess(nick === null ? 'moderation.nickRemoved' : 'moderation.nickChanged', { user: target.user.tag });
     } catch (e) {
       return ctx.sendError('moderation.nickFailed', {}, {}, { ephemeral: true });

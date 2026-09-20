@@ -370,40 +370,6 @@ Giveaway sử dụng Button hoặc Reaction.
 
 ---
 
-# 11. Games / Minigames
-
-Các minigame đơn giản:
-
-* Coin Flip
-* Rock Paper Scissors
-* Dice
-* Guess Number
-* Quiz
-* Blackjack
-* Slots
-
-Có thể tích hợp với Economy.
-
-Ví dụ:
-
-```text
-/coinflip
-/rps
-/dice
-/guess
-/quiz
-/blackjack
-/slots
-```
-
-Phải có:
-
-* Cooldown
-* Anti abuse
-* Bet limit
-* Economy validation
-
----
 
 # 12. Utility
 
@@ -420,8 +386,6 @@ Các command tiện ích:
 /roleinfo
 /channelinfo
 /emoji
-/poll
-/remind
 /uptime
 /botinfo
 ```
@@ -435,77 +399,8 @@ Hỗ trợ:
 
 ---
 
-# 13. Poll System
 
-Tạo poll.
 
-Ví dụ:
-
-```text
-/poll create
-```
-
-Hỗ trợ:
-
-* Question
-* Multiple options
-* Duration
-* Anonymous vote
-* Multiple choice
-* Auto close
-
-Khi kết thúc phải hiển thị kết quả.
-
----
-
-# 14. Reminder System
-
-Hệ thống nhắc nhở.
-
-Ví dụ:
-
-```text
-/remind 30m uống nước
-/remind 2h kiểm tra server
-/remind 1d meeting
-```
-
-Hỗ trợ:
-
-```text
-10s
-5m
-2h
-3d
-```
-
-Reminder phải được lưu Database để không mất khi bot restart.
-
----
-
-# 15. Notification System
-
-Hỗ trợ thông báo từ các nguồn bên ngoài khi API phù hợp.
-
-Ví dụ:
-
-* YouTube
-* Twitch
-* RSS
-* Website
-* Webhook
-
-Có thể cấu hình:
-
-```text
-Notification source
-Target channel
-Message template
-Embed
-Mention role
-```
-
----
 
 # 16. Server Configuration
 
@@ -602,7 +497,6 @@ Economy
 Inventory
 Ticket
 Giveaway
-Reminder
 AutoMod Config
 Welcome Config
 Logging Config
@@ -771,7 +665,6 @@ discord-bot/
 │   │   ├── levels/
 │   │   ├── ticket/
 │   │   ├── giveaway/
-│   │   ├── games/
 │   │   └── utility/
 │   │
 │   ├── events/
@@ -848,9 +741,7 @@ AI coding agent nên triển khai theo thứ tự:
 12. Level / XP
 13. Economy
 14. Giveaway
-15. Games
 16. Utility
-17. Notification
 18. Dashboard
 19. Testing
 20. Optimization
@@ -884,9 +775,7 @@ Tickets
 Level
 Economy
 Giveaway
-Games
 Utility
-Notifications
 Database
 ```
 

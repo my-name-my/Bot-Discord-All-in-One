@@ -26,9 +26,7 @@ const LIMITS = {
   giveawayMaxWinners: 20,
   giveawayMaxDurationMs: 30 * 24 * 60 * 60 * 1000,
   giveawayMinDurationMs: 10 * 1000,
-  pollMaxOptions: 10,
-  pollMaxDurationMs: 14 * 24 * 60 * 60 * 1000,
-  pollMinDurationMs: 60 * 1000,
+  giveawayMaxAccountAgeDays: 3650, // ~10 năm, chặn giá trị vô lý từ option
   betMin: 10,
   betMax: 100000,
   remindMaxMs: 365 * 24 * 60 * 60 * 1000,

@@ -53,14 +53,20 @@ module.exports = {
       }
     }
 
-    // Khoi phuc cac timer ben vung (giveaway, poll, reminder, thong bao)
+    // Khoi phuc cac timer ben vung (giveaway, temp role)
     try {
       if (ctx.services?.giveawayService) await ctx.services.giveawayService.restore(client);
-      if (ctx.services?.pollService) await ctx.services.pollService.restore(client);
-      if (ctx.services?.reminderService) await ctx.services.reminderService.restore(client);
-      if (ctx.services?.notificationService) await ctx.services.notificationService.restore(client);
+      if (ctx.services?.tempRoleService) await ctx.services.tempRoleService.restore(client);
     } catch (error) {
       logger.error('ready', `Timer restore failed: ${error.message}`);
+    }
+
+    // AutoMod: mot lockdown dang chay khi bot restart phai duoc re-arm,
+    // neu khong quyen @everyone se bi khoa vinh vien.
+    try {
+      if (ctx.services?.automodService?.restore) await ctx.services.automodService.restore(client);
+    } catch (error) {
+      logger.error('ready', `AutoMod restore failed: ${error.message}`);
     }
   },
 };

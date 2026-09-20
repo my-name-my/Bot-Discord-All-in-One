@@ -9,7 +9,16 @@
     "deploy-commands": "node scripts/deploy-commands.js",
     "check": "node scripts/check-syntax.js",
     "load-test": "node scripts/load-test.js",
-    "test": "node scripts/smoke-test.js"
+    "test": "node scripts/smoke-test.js",
+    "test:automod": "node scripts/test-automod.js",
+    "test:lockdown": "node scripts/test-automod-lockdown.js",
+    "test:automod-restart": "node scripts/test-automod-restart.js",
+    "test:logging": "node scripts/test-logging.js",
+    "test:moderation": "node scripts/test-moderation.js",
+    "test:welcome": "node scripts/test-welcome.js",
+    "test:levels": "node scripts/test-levels.js",
+    "test:economy": "node scripts/test-economy.js",
+    "test:giveaways": "node scripts/test-giveaways.js"
   },
   "engines": {
     "node": ">=18.0.0"

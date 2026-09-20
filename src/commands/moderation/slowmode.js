@@ -22,7 +22,12 @@ module.exports = {
     const clamped = Math.max(0, Math.min(seconds, LIMITS.slowmodeMax));
     const r = await moderationService.setSlowmode(channel, clamped);
     if (!r.ok) return ctx.sendError(r.reason, {}, {}, { ephemeral: true });
-    const label = clamped === 0 ? ctx.t('moderation.slowmodeOff') : ctx.t('moderation.slowmodeSet', { seconds: clamped });
-    return ctx.sendSuccess(label);
+    // Both templates expect {channel}; it was never passed, so users saw the
+    // literal "{channel}" placeholder.
+    const label = channel.name ? `#${channel.name}` : channel.id;
+    return ctx.sendSuccess(
+      clamped === 0 ? 'moderation.slowmodeOff' : 'moderation.slowmodeSet',
+      { seconds: clamped, channel: label },
+    );
   },
 };
