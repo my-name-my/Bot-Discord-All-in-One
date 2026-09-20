@@ -2,26 +2,24 @@
 
 Bot Discord đa chức năng: moderation, automod, logging, welcome, roles, tickets, levels, economy, giveaways, utility. Chạy đồng thời **slash + prefix commands**, cấu hình riêng từng server, 2 ngôn ngữ (vi/en).
 
-> Spec gốc: [`PROMT.md`](./PROMT.md). 31 slash commands, 16 categories, chế độ **guild-only** (không dùng global commands).
+> Spec gốc: [`Project Struture`](./Project_Structure.md). 31 slash commands, 16 categories, chế độ **guild-only** (không dùng global commands).
 
 ## Tính năng
 
 | Module | Lệnh chính | Docs |
 |---|---|---|
 | Moderation | `/ban /kick /timeout /warn /purge /lock /slowmode /nick /role …` (15 lệnh) | [`src/commands/moderation/README.md`](./src/commands/moderation/README.md) |
-| AutoMod | `/automod status/toggle/rule/badword/ignore` | [`src/commands/automod/README.md`](./src/commands/automod/README.md) |
-| Logging | `/log setup/channel/category/toggle/list` | [`src/commands/logging/README.md`](./src/commands/logging/README.md) |
-| Welcome / Goodbye | `/welcome /goodbye` (channel, message, autorole, embed, test) | [`src/commands/welcome/README.md`](./src/commands/welcome/README.md) |
-| Roles | `/rolemenu create/delete/list` (button/select role) | [`src/commands/roles/README.md`](./src/commands/roles/README.md) |
-| Tickets | `/ticket setup/list/close/reopen/delete/claim` | [`src/commands/tickets/README.md`](./src/commands/tickets/README.md) |
-| Levels & XP | `/levels rank/leaderboard/level/addxp` | [`src/commands/levels/README.md`](./src/commands/levels/README.md) |
-| Economy | `/economy balance/daily/work/deposit/withdraw/pay/shop/inventory/admin` | [`src/commands/economy/README.md`](./src/commands/economy/README.md) |
-| Giveaways | `/giveaway create/end/reroll/list` | [`src/commands/giveaways/README.md`](./src/commands/giveaways/README.md) |
-| Utility | `/utility ping/avatar/userinfo/serverinfo …` (12 sub) | [`src/commands/utility/README.md`](./src/commands/utility/README.md) |
-| Config | `/config prefix/language/module/view/reset` | [`src/commands/config/README.md`](./src/commands/config/README.md) |
-| Context menu | Chuột phải user → `Profile` | [`src/commands/context/README.md`](./src/commands/context/README.md) |
-| Config | `/config prefix/language/module/view/reset` | [`src/commands/config/README.md`](./src/commands/config/README.md) |
-| Context menu | Chuột phải user → `Profile` | [`src/commands/context/README.md`](./src/commands/context/README.md) |
+| AutoMod | `/automod status/toggle/rule/badword/ignore` | [`AutoMod`](./src/commands/automod/README.md) |
+| Logging | `/log setup/channel/category/toggle/list` | [`Logging`](./src/commands/logging/README.md) |
+| Welcome / Goodbye | `/welcome /goodbye` (channel, message, autorole, embed, test) | [`Welcome / Goodbye`](./src/commands/welcome/README.md) |
+| Roles | `/rolemenu create/delete/list` (button/select role) | [`Roles`](./src/commands/roles/README.md) |
+| Tickets | `/ticket setup/list/close/reopen/delete/claim` | [`Tickets`](./src/commands/tickets/README.md) |
+| Levels & XP | `/levels rank/leaderboard/level/addxp` | [`Levels & XP`](./src/commands/levels/README.md) |
+| Economy | `/economy balance/daily/work/deposit/withdraw/pay/shop/inventory/admin` | [`Economy`](./src/commands/economy/README.md) |
+| Giveaways | `/giveaway create/end/reroll/list` | [`Giveaways`](./src/commands/giveaways/README.md) |
+| Utility | `/utility ping/avatar/userinfo/serverinfo …` (12 sub) | [`Utility`](./src/commands/utility/README.md) |
+| Config | `/config prefix/language/module/view/reset` | [`Config`](./src/commands/config/README.md) |
+| Context menu | Chuột phải user → `Profile` | [`Context menu`](./src/commands/context/README.md) |
 
 Hạ tầng: [handlers](./src/handlers/README.md) · [services](./src/services/README.md) · [events](./src/events/README.md) · [interactions](./src/interactions/README.md) · [database](./src/database/README.md).
 
