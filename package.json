@@ -1,0 +1,37 @@
+{
+  "name": "discord-bot",
+  "version": "1.0.0",
+  "description": "All-in-one Discord bot: moderation, automod, logging, welcome, roles, tickets, levels, economy, giveaways, games, utility. Slash + prefix commands.",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "node --watch src/index.js",
+    "deploy-commands": "node scripts/deploy-commands.js",
+    "check": "node scripts/check-syntax.js",
+    "load-test": "node scripts/load-test.js",
+    "test": "node scripts/smoke-test.js"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "keywords": [
+    "discord",
+    "bot",
+    "discord.js",
+    "moderation",
+    "automod",
+    "economy",
+    "tickets"
+  ],
+  "license": "MIT",
+  "dependencies": {
+    "discord.js": "^14.16.3",
+    "dotenv": "^16.4.5"
+  },
+  "optionalDependencies": {
+    "@napi-rs/canvas": "^0.1.53",
+    "better-sqlite3": "^11.10.0",
+    "mysql2": "^3.11.0",
+    "pg": "^8.12.0"
+  }
+}
