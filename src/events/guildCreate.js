@@ -1,4 +1,4 @@
-/** guildCreate — ensure per-guild config + register guild-only slash commands. */
+/** guildCreate — dam bao config rieng tung server + dang ky slash rieng tung server. */
 const config = require('../config/config');
 const guildConfigService = require('../services/guildConfigService');
 const { buildSlashCommands } = require('../handlers/slashBuilder');
@@ -14,7 +14,7 @@ module.exports = {
     } catch (error) {
       logger.error('guild', `config ensure failed for ${guild.id}: ${error.message}`);
     }
-    // Guild-only mode: register slash commands to the new guild immediately.
+    // Che do guild-only: dang ky slash cho server moi ngay lap tuc.
     if (config.autoRegisterCommands) {
       try {
         const body = buildSlashCommands(ctx?.commands?.all?.() || client.commands?.all?.() || []);

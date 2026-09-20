@@ -1,8 +1,8 @@
 /**
- * SQLite adapter (optional dependency: better-sqlite3).
- * Each collection is a table with a TEXT primary key and a JSON data
- * column. All statements are parameterized — no string interpolation
- * of user input ever reaches SQL.
+ * Adapter SQLite (goi tuy chon: better-sqlite3).
+ * Moi collection la mot bang voi khoa chinh TEXT va cot du lieu JSON.
+ * Moi cau lenh deu tham so hoa — khong bao gio noi chuoi truc tiep
+ * tu du lieu user vao SQL.
  */
 const logger = require('../../utils/logger');
 

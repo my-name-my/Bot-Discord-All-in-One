@@ -1,7 +1,7 @@
 /**
- * JSON adapter — the zero-dependency fallback storage.
- * One pretty-printed file per collection inside <dataDir>/db.
- * Writes are debounced (250 ms) and flushed on exit so restarts are safe.
+ * Adapter JSON — kho luu du phong, khong can cai them goi nao.
+ * Moi collection la mot file JSON format dep trong <dataDir>/db.
+ * Ghi duoc don (debounce 250 ms) va xa het khi thoat nen restart an toan.
  */
 const fs = require('fs');
 const path = require('path');

@@ -1,7 +1,7 @@
 /**
- * MySQL / MariaDB adapter (optional dependency: mysql2).
- * Each collection is a table with TEXT id + JSON data column.
- * All values are passed as bound parameters — safe against SQL injection.
+ * Adapter MySQL / MariaDB (goi tuy chon: mysql2).
+ * Moi collection la mot bang voi cot id TEXT + cot du lieu JSON.
+ * Moi gia tri deu truyen dang tham so rang buoc — chong SQL injection.
  */
 const logger = require('../../utils/logger');
 

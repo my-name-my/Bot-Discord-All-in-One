@@ -1,4 +1,4 @@
-/** Routes button / select / modal interactions to feature modules. */
+/** Dieu huong tuong tac button / select / modal ve cac module tinh nang. */
 const componentHandler = require('../handlers/componentHandler');
 
 module.exports = {
@@ -9,7 +9,7 @@ module.exports = {
         await ctx.commandHandler.handleSlash(interaction);
         return;
       }
-      // Buttons, select menus, modals → component routes
+      // Button, select menu, modal -> route component
       if (
         interaction.isButton &&
         (interaction.isButton() || interaction.isAnySelectMenu() || interaction.isModalSubmit())

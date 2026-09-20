@@ -1,13 +1,13 @@
 /**
- * CommandHandler — executes commands through ONE pipeline for both slash
- * and prefix invocations (spec §22):
+ * CommandHandler — thực thi lệnh qua MỘT pipeline cho cả slash
+ * lẫn prefix (spec §22):
  *
- *   Command Input → Parser → Handler → Permission Check
- *                 → Cooldown Check → Business Logic → Response
+ *   Command Input → Parser → Handler → Kiểm tra quyền
+ *                 → Kiểm tra cooldown → Business Logic → Phản hồi
  *
- * Centralized error handling (spec §20): a failed command never crashes
- * the bot; users get a friendly message; details go to console + the
- * guild's error log channel (without secrets or stack traces).
+ * Xử lý lỗi tập trung (spec §20): lệnh lỗi không bao giờ làm crash
+ * bot; người dùng nhận thông báo thân thiện; chi tiết ghi ra console
+ * + kênh log lỗi của server (không kèm secret hay stack trace).
  */
 const Context = require('./context');
 const permissionService = require('../services/permissionService');
@@ -63,7 +63,7 @@ class CommandHandler {
   }
 
   async handlePrefix(message, parsed, prefix) {
-    if (!parsed.command) return; // unknown command → stay silent (no spam)
+    if (!parsed.command) return; // lệnh lạ → im lặng (không spam)
     await this.run({
       command: parsed.command,
       source: 'prefix',
@@ -75,7 +75,7 @@ class CommandHandler {
     });
   }
 
-  /** Map slash interaction options into plain values keyed by name. */
+  /** Ánh xạ tùy chọn slash interaction thành giá trị thuần theo tên. */
   resolveSlashOptions(interaction, command) {
     const options = {};
     const members = {};
@@ -120,8 +120,8 @@ class CommandHandler {
   }
 
   /**
-   * THE pipeline: permission → cooldown → module gate → business logic.
-   * @param {object} params
+   * Pipeline chinh: quyen → cooldown → cong module → logic nghiep vu.
+   * @param {object} params cac tham so
    */
   async run({ command, source, interaction = null, message = null, prefix = null, options = {}, members = {}, subcommand = null }) {
     const client = this.client;
@@ -145,20 +145,20 @@ class CommandHandler {
         prefix: prefix || guildConfig?.prefix || null,
       });
 
-      // 1) Guild-only enforcement
+      // 1) Bắt buộc chạy trong server
       if ((command.guildOnly !== false) && !context.guild) {
         await context.sendError('common.guildOnly', {}, {}, { ephemeral: true });
         return;
       }
 
-      // 2) Module gate (per-guild feature switches)
+      // 2) Chặn theo module (công tắc tính năng từng server)
       if (command.module && context.guildConfig && context.guildConfig.modules
         && context.guildConfig.modules[command.module] === false) {
         await context.sendError('common.disabledModule', { module: command.module }, {}, { ephemeral: true });
         return;
       }
 
-      // 3) Permission check (user tier)
+      // 3) Kiểm tra quyền (cấp của người dùng)
       const permission = permissionService.checkPermission({
         member: context.member,
         userId: context.user ? context.user.id : null,
@@ -172,7 +172,7 @@ class CommandHandler {
         return;
       }
 
-      // 4) Bot permission check
+      // 4) Kiểm tra quyền của bot
       const botPerms = permissionService.checkBotPermissions(
         context.guild,
         command.permissions ? command.permissions.bot : []
@@ -184,7 +184,7 @@ class CommandHandler {
         return;
       }
 
-      // 5) Cooldown check (claimed before running; refund on error)
+      // 5) Kiểm tra cooldown (chiếm trước khi chạy; hoàn lại khi lỗi)
       const cooldown = command.cooldown || { seconds: 0, scope: 'user' };
       const cooldownKey = cooldown.scope === 'guild' ? (context.guildId || 'global')
         : cooldown.scope === 'command' ? 'global'
@@ -196,11 +196,11 @@ class CommandHandler {
         return;
       }
 
-      // 6) Business logic — ONE implementation for slash + prefix
+      // 6) Business logic — MỘT bản cài đặt cho cả slash + prefix
       await command.run(context);
     } catch (error) {
       if (context) {
-        // refund cooldown so a crash doesn't lock the user out
+        // hoàn cooldown để crash không khiến người dùng bị khóa vĩnh viễn
         if (command && command.cooldown && command.cooldown.seconds) {
           const key = command.cooldown.scope === 'guild' ? (context.guildId || 'global')
             : command.cooldown.scope === 'command' ? 'global'

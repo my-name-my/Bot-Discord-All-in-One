@@ -42,7 +42,7 @@ function buildSlashCommands(commands) {
     };
 
     if (Array.isArray(command.subcommands) && command.subcommands.length) {
-      // Subcommands can't coexist with top-level options in Discord API.
+      // Subcommand khong the cung ton tai voi option cap top trong Discord API.
       body.options = command.subcommands.map((sub) => ({
         name: sub.name,
         description: (sub.description || '…').slice(0, 100),
@@ -57,8 +57,8 @@ function buildSlashCommands(commands) {
       body.options = command.options.map(optionToJSON);
     }
 
-    // Context-menu style extras (user/message commands) are registered
-    // separately by commands that define `contextMenu`.
+    // Kieu context menu (lenh user/message) duoc dang ky
+    // rieng boi cac lenh dinh nghia `contextMenu`.
     bodies.push(body);
     if (command.contextMenu) {
       bodies.push({

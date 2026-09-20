@@ -1,6 +1,6 @@
 /**
- * Event loader — discovers event modules under src/events and wires them
- * to the Discord client. An event module exports:
+ * Bo nap su kien — tu tim module su kien trong src/events va gan vao
+ * client Discord. Mot module su kien export:
  *   { name: 'messageCreate', once: false, execute: async (client, ...args) => {} }
  */
 const fs = require('fs');

@@ -82,7 +82,7 @@ async function safeReply(interaction, payload, ephemeral = false) {
       await interaction.reply({ ...payload, flags: ephemeral ? 64 : undefined });
     }
   } catch {
-    /* interaction may have expired — nothing else to do */
+    /* tuong tac co the da het han — khong con gi de lam */
   }
 }
 

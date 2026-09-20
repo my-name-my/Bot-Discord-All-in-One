@@ -1,14 +1,14 @@
 /**
- * DatabaseManager — the single entry point to storage, decoupled from
- * commands and services. Data is organized as "collections" of documents
- * keyed by a string id. The active adapter is chosen from DATABASE_URL:
+ * DatabaseManager — cua ngõ duy nhat vao kho luu tru, tach biet khoi
+ * lenh va service. Du lieu to chuc dang "collection" cac document
+ * khoa bang id chuoi. Adapter dang dung chon theo DATABASE_URL:
  *
  *   (empty)            → JSON files in data/db (zero-setup fallback)
  *   sqlite://...       → better-sqlite3 (optional dependency)
  *   postgres://...     → pg (optional dependency)
  *   mysql://...        → mysql2 (optional dependency)
  *
- * SQL adapters use parameterized statements only (see adapters/*).
+ * Cac adapter SQL chi dung cau lenh tham so hoa (xem adapters/*).
  */
 const config = require('../config/config');
 const logger = require('../utils/logger');
@@ -19,12 +19,12 @@ class Collection {
     this.adapter = adapter;
   }
 
-  /** @returns {Promise<object|null>} the stored document (without id) */
+  /** @returns {Promise<object|null>} document da luu (khong gom id) */
   async get(id) {
     return this.adapter.get(this.name, id);
   }
 
-  /** Insert or overwrite a document. */
+  /** Chen moi hoac ghi de mot document. */
   async set(id, doc) {
     if (doc === null || doc === undefined || typeof doc !== 'object') {
       throw new Error(`Collection.set(${this.name}, ${id}) requires an object`);
@@ -36,7 +36,7 @@ class Collection {
     return this.adapter.delete(this.name, id);
   }
 
-  /** @returns {Promise<Array<{id: string} & object>>} */
+  /** @returns {Promise<Array<{id: string} & object>>} danh sach document kem id */
   async all() {
     return this.adapter.all(this.name);
   }
@@ -106,7 +106,7 @@ async function createAdapter() {
 }
 
 /**
- * Initialize the global database instance. Called exactly once at boot.
+ * Khoi tao instance database dung chung. Chi goi dung mot lan khi khoi dong.
  */
 async function initDatabase() {
   if (instance) return instance;
@@ -122,7 +122,7 @@ function getDatabase() {
   return instance;
 }
 
-/** Used by tests to inject a fake adapter. */
+/** Dung cho test de tiem adapter gia. */
 function _setInstance(manager) {
   instance = manager;
 }

@@ -1,4 +1,4 @@
-/** Global safety nets — a rejected promise or uncaught error never kills the bot. */
+/** Mang an toan toan cuc — promise tu choi hoac loi chua bat khong bao gio lam chet bot. */
 const logger = require('../utils/logger');
 
 module.exports = {

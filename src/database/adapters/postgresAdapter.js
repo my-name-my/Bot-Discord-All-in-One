@@ -1,8 +1,8 @@
 /**
- * PostgreSQL adapter (optional dependency: pg).
- * Each collection is a table with TEXT id + JSONB data column.
- * Every query is parameterized ($1, $2) — identifiers (table names) are
- * validated against a strict allowlist pattern, not user input.
+ * Adapter PostgreSQL (goi tuy chon: pg).
+ * Moi collection la mot bang voi cot id TEXT + cot du lieu JSONB.
+ * Moi truy van deu tham so hoa ($1, $2) — ten bang chi chap nhan
+ * theo danh sach cho phep, khong lay truc tiep tu user.
  */
 const logger = require('../../utils/logger');
 

@@ -1,4 +1,4 @@
-/** Ready — log status, register slash commands, restore timers. */
+/** Ready — ghi log trang thai, dang ky slash, khoi phuc timer. */
 const config = require('../config/config');
 const logger = require('../utils/logger');
 const { buildSlashCommands } = require('../handlers/slashBuilder');
@@ -7,8 +7,8 @@ const { REST, Routes } = require('discord.js');
 module.exports = {
   name: 'clientReady',
   once: true,
-  // EventLoader calls execute(client, ...emittedArgs, ctx).
-  // clientReady emits (client) → full signature is (client, emittedClient, ctx).
+  // EventLoader goi execute(client, ...emittedArgs, ctx).
+  // clientReady emit (client) → chuoi tham so day du la (client, emittedClient, ctx).
   async execute(client, emittedClient, ctx) {
     ctx = ctx || {};
     const commands = ctx.commands?.all?.() || [];
@@ -40,7 +40,7 @@ module.exports = {
             logger.error('ready', `Slash registration failed for guild ${guildId}: ${err.message}`);
           }
         }
-        // Clear any stale GLOBAL commands so only guild commands remain.
+        // Xoa sach lenh GLOBAL cu de chi con lenh cap server.
         try {
           await rest.put(Routes.applicationCommands(config.clientId), { body: [] });
           logger.info('ready', 'Cleared global slash commands (guild-only mode)');
@@ -53,7 +53,7 @@ module.exports = {
       }
     }
 
-    // Restore persistent timers (giveaways, polls, reminders, notifications)
+    // Khoi phuc cac timer ben vung (giveaway, poll, reminder, thong bao)
     try {
       if (ctx.services?.giveawayService) await ctx.services.giveawayService.restore(client);
       if (ctx.services?.pollService) await ctx.services.pollService.restore(client);

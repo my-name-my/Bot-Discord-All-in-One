@@ -1,22 +1,22 @@
 /**
- * Command loader — discovers command modules under src/commands/**.
+ * Bộ nạp lệnh — quét các module lệnh trong src/commands/**.
  *
- * A command module exports:
+ * Một module lệnh xuất:
  * {
- *   name: 'ban',                       // required, unique
- *   description: '...',                 // shown in slash UI
- *   category: 'moderation',            // folder name
- *   aliases: ['b'],                    // prefix-only
- *   usage: 'ban <user> [reason]',      // help text
- *   examples: ['ban @user spam'],
- *   permissions: { tier: 'mod', bot: ['BanMembers'] },
- *   cooldown: { seconds: 3, scope: 'user' },
- *   module: 'moderation',              // guildConfig.modules key to gate on
- *   guildOnly: true,
- *   slash: true,                       // register as slash command
- *   options: [ { name, type, description, required } ],   // slash options
- *   subcommands: [ { name, description, options } ],      // optional
- *   run: async (ctx) => {}             // shared business logic
+ *   name: 'ban',                       // bắt buộc, duy nhất
+ *   description: '...',                 // hiển thị trong UI slash
+ *   category: 'moderation',            // tên thư mục
+ *   aliases: ['b'],                    // chỉ dùng cho prefix
+ *   usage: 'ban <user> [reason]',      // hướng dẫn dùng
+ *   vi du: ['ban @user spam'],
+ *   permissions: { tier: 'mod', bot: ['BanMembers'] }, // quyen yeu cau
+ *   cooldown: { seconds: 3, scope: 'user' }, // thoi gian cho
+ *   module: 'moderation',              // key trong guildConfig.modules để bật/tắt
+ *   guildOnly: true, // chi dung trong server
+ *   slash: true,                       // đăng ký làm slash command
+ *   options: [ { name, type, description, required } ],   // tùy chọn slash
+ *   subcommands: [ { name, description, options } ],      // tùy chọn
+ *   run: async (ctx) => {}             // logic nghiệp vụ dùng chung
  * }
  */
 const fs = require('fs');
@@ -25,17 +25,17 @@ const logger = require('../utils/logger');
 
 class CommandLoader {
   constructor() {
-    /** @type {Map<string, object>} name/alias → command */
+    /** @type {Map<string, object>} tên/alias → lệnh */
     this.commands = new Map();
-    /** @type {Map<string, object>} canonical name → command */
+    /** @type {Map<string, object>} tên chuẩn → lệnh */
     this.byName = new Map();
-    /** @type {Map<string, string[]>} category → names */
+    /** @type {Map<string, string[]>} category → danh sách tên */
     this.categories = new Map();
   }
 
   /**
-   * @param {string} commandsDir absolute path to src/commands
-   * @returns {Promise<{ loaded: number, errors: string[] }>}
+   * @param {string} commandsDir đường dẫn tuyệt đối tới src/commands
+   * @returns {Promise<{ loaded: number, errors: string[] }>} so lenh nap duoc va loi
    */
   async load(commandsDir) {
     this.commands.clear();
@@ -62,7 +62,7 @@ class CommandLoader {
           delete require.cache[require.resolve(filePath)];
           const definition = require(filePath);
           if (!definition || !definition.name || typeof definition.run !== 'function') {
-            errors.push(`${filePath}: missing name or run()`);
+            errors.push(`${filePath}: thiếu name hoặc run()`);
             continue;
           }
           definition.category = definition.category || category;
@@ -74,7 +74,7 @@ class CommandLoader {
       }
     }
 
-    logger.info('commands', `Loaded ${loaded} command(s) across ${this.categories.size} categories`);
+    logger.info('commands', `Đã nạp ${loaded} lệnh trong ${this.categories.size} nhóm`);
     if (errors.length) {
       for (const error of errors) logger.error('commands', error);
     }
@@ -86,7 +86,7 @@ class CommandLoader {
     this.commands.set(definition.name, definition);
     for (const alias of definition.aliases || []) {
       if (this.commands.has(alias)) {
-        logger.warn('commands', `Alias conflict: "${alias}" already mapped — skipping`);
+        logger.warn('commands', `Xung đột alias: "${alias}" đã được ánh xạ — bỏ qua`);
         continue;
       }
       this.commands.set(alias, definition);
@@ -99,12 +99,12 @@ class CommandLoader {
     return this.commands.get(String(name).toLowerCase()) || null;
   }
 
-  /** All canonical commands (no alias duplicates). */
+  /** Toàn bộ lệnh gốc (không trùng alias). */
   all() {
     return [...this.byName.values()];
   }
 
-  /** Build the "Command name → command" map for the help paginator. */
+  /** Dựng map "Tên lệnh → lệnh" cho bộ phân trang help. */
   listByCategory() {
     const result = [];
     for (const [category, names] of this.categories) {

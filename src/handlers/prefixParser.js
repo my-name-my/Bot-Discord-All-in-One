@@ -58,7 +58,7 @@ function resolveOptions(definition, args, message, subcommandDef) {
           if (member) members[optDef.name] = member;
           argIndex++;
         } else if (optDef.required) {
-          // leave unresolved; handler's permission/validation layer reports it
+          // de chua resolve; lop quyen/kiem soat cua handler se bao loi
           argIndex++;
         }
         break;
@@ -121,7 +121,7 @@ function resolveOptions(definition, args, message, subcommandDef) {
 }
 
 /**
- * Detect the active subcommand from leading args.
+ * Xac dinh subcommand dang chay tu cac arg dau.
  * @returns {{ subcommand: object|null, remaining: string[] }}
  */
 function extractSubcommand(definition, args) {
@@ -135,10 +135,10 @@ function extractSubcommand(definition, args) {
 }
 
 /**
- * @param {Message} message
- * @param {string} prefix
- * @param {CommandLoader} loader
- * @returns {{ command: object|null, name: string, args: string[], subcommand: object|null, options: object, members: object }|null}
+ * @param {Message} message tin nhan
+ * @param {string} prefix tien to
+ * @param {CommandLoader} loader bo nap lenh
+ * @returns {{ command: object|null, name: string, args: string[], subcommand: object|null, options: object, members: object }|null} ket qua phan tich
  */
 function parse(message, prefix, loader) {
   const content = message.content || '';

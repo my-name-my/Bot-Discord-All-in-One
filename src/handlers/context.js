@@ -1,6 +1,6 @@
 /**
- * Unified execution context shared by slash and prefix paths.
- * Command business logic is written ONCE against this class.
+ * Context thực thi chung cho cả đường slash và prefix.
+ * Logic nghiệp vụ của lệnh chỉ viết MỘT lần dựa trên class này.
  */
 const { MessageFlags } = require('discord.js');
 const i18n = require('../services/i18nService');
@@ -10,18 +10,18 @@ const { parseDuration } = require('../utils/time');
 
 class Context {
   /**
-   * @param {object} params
-   * @param {Client} params.client
-   * @param {object} params.command the command definition
-   * @param {'slash'|'prefix'} params.source
-   * @param {CommandInteraction|null} params.interaction
-   * @param {Message|null} params.message
-   * @param {object} params.options resolved option values by name
-   * @param {object} [params.members] resolved GuildMembers by option name
-   * @param {object|null} [params.subcommand] active subcommand definition
-   * @param {string|null} [params.language]
-   * @param {object|null} [params.guildConfig]
-   * @param {string} [params.prefix]
+   * @param {object} params các tham số
+   * @param {Client} params.client client Discord
+   * @param {object} params.command định nghĩa lệnh
+   * @param {'slash'|'prefix'} params.source nguồn gọi
+   * @param {CommandInteraction|null} params.interaction tương tác slash
+   * @param {Message|null} params.message tin nhắn prefix
+   * @param {object} params.options giá trị option đã resolve theo tên
+   * @param {object} [params.members] GuildMember đã resolve theo tên option
+   * @param {object|null} [params.subcommand] định nghĩa subcommand đang chạy
+   * @param {string|null} [params.language] ngôn ngữ server
+   * @param {object|null} [params.guildConfig] cấu hình server
+   * @param {string} [params.prefix] tiền tố
    */
   constructor({ client, command, source, interaction = null, message = null, options = {}, members = {}, subcommand = null, language = null, guildConfig = null, prefix = null }) {
     this.client = client;
@@ -65,16 +65,16 @@ class Context {
     return this.guild ? this.guild.id : null;
   }
 
-  /** Translate via the guild's language. */
+  /** Dich theo ngon ngu cua server. */
   t(key, params) {
     return i18n.translate(this.language, key, params);
   }
 
   /**
-   * Reply (or follow-up) to the invocation. Prefix replies cannot be
-   * ephemeral — they are visible in the channel instead.
-   * @param {object} payload { content?, embeds?, components?, files?, allowedMentions? }
-   * @param {{ ephemeral?: boolean }} [opts]
+   * Tra loi (hoac follow-up) cho lenh. Reply prefix khong the an
+   * (ephemeral) — hien trong kenh thay vi that.
+   * @param {object} payload du lieu gui { content?, embeds?, components?, files?, allowedMentions? }
+   * @param {{ ephemeral?: boolean }} [opts] tuy chon an tin
    */
   async reply(payload, opts = {}) {
     const base = {
@@ -101,7 +101,7 @@ class Context {
     return result;
   }
 
-  /** Signal ongoing work (deferReply for slash, typing indicator for prefix). */
+  /** Bao dang xu ly (deferReply cho slash, chi danh cho prefix). */
   async deferReply(ephemeral = true) {
     if (this.isSlash) {
       if (!this.interaction.deferred && !this.interaction.replied) {
@@ -117,7 +117,7 @@ class Context {
     }
   }
 
-  // ── Option accessors (unified across slash + prefix) ─────────────────────
+  // ── Truy cap option (thong nhat giua slash + prefix) ─────────────────────
 
   getString(name, fallback = null) {
     const value = this.options[name];
@@ -136,14 +136,14 @@ class Context {
     return value === undefined || value === null ? fallback : Boolean(value);
   }
 
-  /** Returns the target User (or fallback). */
+  /** Tra ve User muc tieu (hoac gia du phong). */
   getUser(name, fallback = null) {
     const value = this.options[name];
     if (!value) return fallback;
     return typeof value === 'object' && value.user ? value.user : value;
   }
 
-  /** Returns the resolved GuildMember or null. */
+  /** Tra ve GuildMember da resolve hoac null. */
   getMember(name, fallback = null) {
     const member = this.members[name];
     return member || fallback;
@@ -157,14 +157,14 @@ class Context {
     return this.options[name] !== undefined ? this.options[name] : fallback;
   }
 
-  /** Duration option → milliseconds (null when invalid/missing). */
+  /** Option thoi luong → millisecond (null khi sai/thieu). */
   getDuration(name) {
     const value = this.options[name];
     if (value === undefined || value === null || value === '') return null;
     return parseDuration(value);
   }
 
-  // ── Convenience responders ────────────────────────────────────────────────
+  // ── Ham tra loi tien ich ──────────────────────────────────────────────────
 
   sendSuccess(key, params = {}, extra = {}, opts = {}) {
     return this.reply({ embeds: [embeds.successEmbed(this.t(key, params))], ...extra }, opts);
