@@ -8,7 +8,7 @@ Bot Discord đa chức năng: moderation, automod, logging, welcome, roles, tick
 
 | Module | Lệnh chính | Docs |
 |---|---|---|
-| Moderation | `/ban /kick /timeout /warn /purge /lock /slowmode /nick /role …` (15 lệnh) | [`src/commands/moderation/README.md`](./src/commands/moderation/README.md) |
+| Moderation | `/ban /kick /timeout /warn /purge /lock /slowmode /nick /role …` (15 lệnh) | [`Moderation`](./src/commands/moderation/README.md) |
 | AutoMod | `/automod status/toggle/rule/badword/ignore` | [`AutoMod`](./src/commands/automod/README.md) |
 | Logging | `/log setup/channel/category/toggle/list` | [`Logging`](./src/commands/logging/README.md) |
 | Welcome / Goodbye | `/welcome /goodbye` (channel, message, autorole, embed, test) | [`Welcome / Goodbye`](./src/commands/welcome/README.md) |
